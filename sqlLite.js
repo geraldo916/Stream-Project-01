@@ -4,7 +4,6 @@ sqlite3.verbose();
 
 const db = new sqlite3.Database('myData',(err)=>err?console.log(err):console.log("Database created"));
 
-export default db;
 
 /*
 db.run("CREATE TABLE users (id TXT ,name TXT, at TXT)",(err)=>{
@@ -30,4 +29,6 @@ for(const data of run()){
     });
 }
 */
+
+export default db;
 

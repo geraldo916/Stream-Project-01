@@ -1,38 +1,37 @@
 import http from 'node:http';
 import db from './sqlLite.js';
-import { Readable, Writable } from 'node:stream';
-
+import { Readable, Writable,Transform } from 'node:stream';
+import { createReadStream,createWriteStream } from 'node:fs';
 
 function handler(req,res){
     // Execute a query and stream the results
+    const fileWriteStream = createWriteStream('index.html');
+    const fileReadStream = createReadStream('index.html');
 
-    const writeStream = new Readable({
-        read(){
             db.each('SELECT * FROM users', (err, row) => {
+                fileWriteStream.write("<html>")
                 if (err) {
-                console.error(err);
-                } else {
+                    console.error(err);
+                }else{
                 // Process each row here
-                    console.log("Requesting")
-                    this.push(row.toString())
+                    fileWriteStream.write(`${JSON.stringify(row)}`)
                 }
             },() => {
                 // This callback is called when the streaming is complete
                 console.log('Streaming complete');
-                this.push(null)
-                // Close the database connection
-                db.close((err) => {
-                if (err) {
-                    console.error(err);
-                } else {
-                    console.log('Database connection closed.');
-                }
-                });
-            });
-        }
-    })
-    writeStream.pipe(res)
+                fileWriteStream.write("</html>")
+                fileWriteStream.end()
+                fileReadStream.pipe(Transform({
+                    transform(chunk,enc,cb){
+                        const item = JSON.parse(chunk);
+                        item.at = new Date(item.at).toDateString()
 
+                        cb(null,JSON.stringify(item))
+                    }
+                })).pipe(res);
+            })
+        
+    
 }
 
 http.createServer(handler)
