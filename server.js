@@ -1,39 +1,42 @@
 import http from 'node:http';
 import db from './sqlLite.js';
-import { Readable, Writable,Transform } from 'node:stream';
-import { createReadStream,createWriteStream } from 'node:fs';
+import { Readable, Transform, Writable } from 'node:stream';
+const PORT = process.env.PORT || 8000;
+const HOST = '127.0.0.1';
 
 function handler(req,res){
     // Execute a query and stream the results
-    const fileWriteStream = createWriteStream('index.html');
-    const fileReadStream = createReadStream('index.html');
-
+    const writeStream = new Readable({
+        read(){
             db.each('SELECT * FROM users', (err, row) => {
-                fileWriteStream.write("<html>")
                 if (err) {
                     console.error(err);
                 }else{
                 // Process each row here
-                    fileWriteStream.write(`${JSON.stringify(row)}`)
+                    this.push(JSON.stringify(row))
                 }
             },() => {
                 // This callback is called when the streaming is complete
                 console.log('Streaming complete');
-                fileWriteStream.write("</html>")
-                fileWriteStream.end()
-                fileReadStream.pipe(Transform({
-                    transform(chunk,enc,cb){
-                        const item = JSON.parse(chunk);
-                        item.at = new Date(item.at).toDateString()
-
-                        cb(null,JSON.stringify(item))
-                    }
-                })).pipe(res);
+                this.push(null)
             })
-        
-    
+        }
+    })
+    writeStream.pipe(
+        Transform({
+            transform(chunk,enc,cb){
+                const data = JSON.parse(chunk);
+                const dataParsed = {
+                    user_id: data.id,
+                    name:data.name,
+                    date: data.at
+                }
+                cb(null,JSON.stringify(dataParsed).concat('\n'));
+            }
+        })
+    ).pipe(res)
 }
 
 http.createServer(handler)
-.listen(8000)
+.listen(PORT,HOST)
 .on("listening",()=>console.log("Server is running at 8000"));

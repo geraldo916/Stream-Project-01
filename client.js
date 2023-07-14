@@ -1,23 +1,39 @@
-import { WriteStream } from 'node:fs';
-import {get} from 'node:http';
-import { Transform,Writable } from 'node:stream';
-import { createReadStream,createWriteStream } from 'node:fs';
+const response = await fetch('http://127.0.0.1:8000');
+const reader = response.body
+let i = 0
+reader.pipeThrough(new TextDecoderStream())  
+        .pipeThrough(
+            new TransformStream({
+                transform(chunk,controller){
+                    
+                    for(const item of chunk.split('\n')){
+                        try{
+                            if(!item.length)continue;
+                            i = i +1
+                            controller.enqueue(JSON.parse(item));
+                        }catch(err){
+                            console.log(err);
+                        }
+                    }
+                }
+            })
+        ).pipeTo(
+            new WritableStream({
+                write(data){
+                    console.log(data)
+                    console.log(i)
+                }
+            })
+        )
 
-const responseStream = () => new Promise((resolve)=>get('http://localhost:8000',res=>resolve(res)));
-const readableStream = await responseStream();
-const readFileStream = createReadStream('index.html');
-
-
+/*
 readableStream.pipe(
     Transform({
         objectMode:true,
         transform(chunk,enc,cb){
-            //console.log(JSON.parse(chunk));
-            //const item = JSON.parse(chunk);
-            //console.log(item);
-            //item.at = `${new Date(item.at).toLocaleDateString()}`
-
-            cb(null,chunk)
+            const item = JSONStream.parse(chunk);
+            item.at = `${new Date(item.at).toLocaleDateString()}`
+            cb(null,JSONStream.stringify(item).)
         }
         
-})).pipe(process.stdout)
+})).pipe(process.stdout)*/
