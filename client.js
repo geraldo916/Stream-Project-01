@@ -1,10 +1,9 @@
-
+var inicial_state = 10;
 async function fetchData(){
     const response = await fetch('http://127.0.0.1:8000');
     const reader = response.body
-    let i = 0
-
-    reader.pipeThrough(new TextDecoderStream())  
+    var elementCounter = 0;
+    const stream = await reader.pipeThrough(new TextDecoderStream())  
             .pipeThrough(
                 new TransformStream({
                     transform(chunk,controller){
@@ -12,7 +11,6 @@ async function fetchData(){
                         for(const item of chunk.split('\n')){
                         try{
                                 if(!item.length)continue;
-                                i = i +1
                                 const dataParsed = JSON.parse(item)
                                 const data = {
                                     ...dataParsed,
@@ -26,12 +24,17 @@ async function fetchData(){
                         }
                     }
                 }))
-                    .pipeTo(
-                    new WritableStream({
-                        write(data){
-                            attachElement(data)
-                        }
-                    }))
+
+    stream.pipeTo(
+        new WritableStream({
+            write(data){                         
+                if(++elementCounter < inicial_state){
+                    attachElement(data);
+                    return;
+                }
+            }
+    }))
+                    
 }
 
 
@@ -39,9 +42,9 @@ async function fetchData(){
 
 function attachElement({user_id,name,date}){
     const listEl = document.querySelector('#data-list');
-
+    
     const node =  `
-    <li>
+    <li id=${name.split('-')[1].trim()} class='data-item' >
         <div>
             <span>Id:</span><h5>${user_id}</h5> 
         </div>
@@ -58,4 +61,41 @@ function attachElement({user_id,name,date}){
 
 (async()=>{
     await fetchData()
+    const el = document.querySelectorAll('.data-item');
+
+    const elFather = document.getElementById('data-list');
+
+    document.addEventListener('hidded',()=>{
+        console.log("One element has hidden")
+    })
+    var hiddenEvent = new CustomEvent('hidded',{
+        detail:{
+            message:"An element has hidden",
+            data:{
+                key:'value'
+            }
+        },
+        bubbles:true,
+        cancelable:true
+    })
+
+    elFather.onscroll = function(){
+        const elemnt = document.getElementById('0');
+        
+        var bounding = elemnt.getBoundingClientRect();
+
+        
+        
+        
+            if(bounding.top*(-1) >= bounding.height){
+                document.dispatchEvent(hiddenEvent)
+            }else{
+                console.log('Element is visible')
+            }
+        /*el.forEach((item)=>{
+            
+        })*/
+    }
+
+    
 })()
