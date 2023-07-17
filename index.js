@@ -41,7 +41,6 @@ function handler(req,res){
                     name:data.name,
                     date: data.at
                 }
-
                 //This allows the event loop to process other tasks and ensures 
                 //that the transformed data is correctly sent through the stream 
                 await setTimeout(0)

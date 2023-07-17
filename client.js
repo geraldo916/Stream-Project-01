@@ -1,44 +1,32 @@
-var inicial_state = 10;
-async function fetchData(){
-    const response = await fetch('http://127.0.0.1:8000');
+var inicial_state = 500;
+async function fetchData(signal){
+    const response = await fetch('http://127.0.0.1:8000',{
+        signal
+    });
     const reader = response.body
-    var elementCounter = 0;
-    const stream = await reader.pipeThrough(new TextDecoderStream())  
-            .pipeThrough(
-                new TransformStream({
-                    transform(chunk,controller){
-                        
-                        for(const item of chunk.split('\n')){
-                        try{
-                                if(!item.length)continue;
-                                const dataParsed = JSON.parse(item)
-                                const data = {
-                                    ...dataParsed,
-                                    date: new Date(dataParsed.date).toLocaleDateString()
-                                }
-
-                                controller.enqueue(data);
-                            }catch(err){
-                                //console.log(err);
-                            }
+    
+    return reader
+    .pipeThrough(new TextDecoderStream())  
+    .pipeThrough(
+        new TransformStream({
+            transform(chunk,controller){ 
+                for(const item of chunk.split('\n')){
+                    try{
+                        if(!item.length)continue;
+                        const dataParsed = JSON.parse(item)
+                        const data = {
+                            ...dataParsed,
+                            date: new Date(dataParsed.date).toLocaleDateString()
                         }
-                    }
-                }))
 
-    stream.pipeTo(
-        new WritableStream({
-            write(data){                         
-                if(++elementCounter < inicial_state){
-                    attachElement(data);
-                    return;
+                        controller.enqueue(data);
+                    }catch(err){
+
+                    }
                 }
             }
-    }))
-                    
+    }))                    
 }
-
-
-
 
 function attachElement({user_id,name,date}){
     const listEl = document.querySelector('#data-list');
@@ -60,15 +48,33 @@ function attachElement({user_id,name,date}){
 }        
 
 (async()=>{
-    await fetchData()
-    const el = document.querySelectorAll('.data-item');
+    let abortController = new AbortController();
+    var elementCounter = 0;
+    const reader = await fetchData(abortController.signal);
+    const a = await reader.getReader().read()
+    console.log(a)
+    //const el = document.querySelectorAll('.data-item');
 
-    const elFather = document.getElementById('data-list');
+    await reader.pipeTo(
+            new WritableStream({
+                write(data,controller){ 
+                    console.log(data)                        
+                    if(++elementCounter > 10){
+                        attachElement(data);
+                    }else{
+                        abortController.abort()
+                    }
+                }
+        }),{signal:abortController.signal})
 
-    document.addEventListener('hidded',()=>{
-        console.log("One element has hidden")
-    })
-    var hiddenEvent = new CustomEvent('hidded',{
+    //const elFather = document.getElementById('data-list');
+
+    /*document.addEventListener('hidded',()=>{
+        abortController.abort()
+        abortController = new AbortController()
+    })*/
+    
+    /*var hiddenEvent = new CustomEvent('hidded',{
         detail:{
             message:"An element has hidden",
             data:{
@@ -84,18 +90,10 @@ function attachElement({user_id,name,date}){
         
         var bounding = elemnt.getBoundingClientRect();
 
-        
-        
-        
-            if(bounding.top*(-1) >= bounding.height){
-                document.dispatchEvent(hiddenEvent)
-            }else{
-                console.log('Element is visible')
-            }
-        /*el.forEach((item)=>{
-            
-        })*/
-    }
-
-    
+        if(bounding.top*(-1) >= bounding.height){
+            document.dispatchEvent(hiddenEvent)
+        }else{
+            console.log('Element is visible')
+        }
+    }*/
 })()
