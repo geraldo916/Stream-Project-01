@@ -1,9 +1,9 @@
-import db from "./dbSQLite";
+import db from "./dbSQLite.js";
 import {promisify} from 'util'
 
 const createTable = promisify(db.run).bind(db)
 
-const res = createTable("CREATE TABLE users (id TXT ,name TXT, at TXT)")
+const res = await createTable("CREATE TABLE users (id TXT ,name TXT, at TXT)")
 
 
 const randomNames = [
@@ -18,7 +18,8 @@ function createData(index) {
     };
     const data = {
       "id": crypto.randomUUID(),
-      "Name": `${name.firstName} ${name.secondName} - Index - ${index}`
+      "name": `${name.firstName} ${name.secondName} - Index - ${index}`,
+      "at":new Date().toLocaleDateString()
     };
     return data
 }
