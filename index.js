@@ -1,5 +1,5 @@
 import http from 'node:http';
-import db from './dbSQLite.js';
+import db from './db/dbSQLite.js';
 import { Readable, Transform, Writable } from 'node:stream';
 import { setTimeout } from 'node:timers/promises';
 const PORT = process.env.PORT || 8000;
