@@ -1,99 +1,110 @@
 var inicial_state = 500;
+let elementCounter = 0
 async function fetchData(signal){
+
     const response = await fetch('http://127.0.0.1:8000',{
-        signal
+        signal:signal
     });
-    const reader = response.body
+    const reader = response.body.getReader() 
     
-    return reader
-    .pipeThrough(new TextDecoderStream())  
+    return new ReadableStream({
+        async start(controller){
+            while(true){
+                const {value,done} = await reader.read()
+                if(done)break;
+                controller.enqueue(value)
+                await new Promise(resolve => setTimeout(()=>resolve(),50))
+            }
+        }
+    }).pipeThrough(new TextDecoderStream())  
     .pipeThrough(
         new TransformStream({
             transform(chunk,controller){ 
-                for(const item of chunk.split('\n')){
-                    try{
-                        if(!item.length)continue;
-                        const dataParsed = JSON.parse(item)
-                        const data = {
-                            ...dataParsed,
-                            date: new Date(dataParsed.date).toLocaleDateString()
-                        }
-
-                        controller.enqueue(data);
-                    }catch(err){
-
-                    }
-                }
-            }
-    }))                    
-}
-
-function attachElement({user_id,name,date}){
-    const listEl = document.querySelector('#data-list');
+                
+                    for(const item of chunk.split('\n')){
+                        try{
+                            if(!item.length)continue;
+                            const dataParsed = JSON.parse(item)
+                            const data = {
+                                ...dataParsed,
+                                date: new Date(dataParsed.date).toLocaleDateString()
+                            }
     
-    const node =  `
-    <li id=${name.split('-')[1].trim()} class='data-item' >
-        <div>
-            <span>Id:</span><h5>${user_id}</h5> 
-        </div>
-        <div>
-            <span>Name:</span><h3>${name}</h3>
-        </div>
-        <div>
-            <span>Created at:<h3>${date}</h3></span>
-        </div>
-    </li>
-    `
-    listEl.innerHTML += node;
-}        
+                            controller.enqueue(data);
+                        }catch(err){
+    
+                        }
+                    }
+                
+            }
+    }))       
+}
 
 (async()=>{
     let abortController = new AbortController();
-    var elementCounter = 0;
-    const reader = await fetchData(abortController.signal);
-    const a = await reader.getReader().read()
-    console.log(a)
-    //const el = document.querySelectorAll('.data-item');
+    const start = document.getElementById('start');
+    const pause = document.getElementById('pause');
+    let cardCounter = 0;
+    let hide = false;
+    start.onclick = async function(){
+        try{
+            const reader = await fetchData(abortController.signal);
+            const listEl = document.querySelector('#data-list');
 
-    await reader.pipeTo(
-            new WritableStream({
-                write(data,controller){ 
-                    console.log(data)                        
-                    if(++elementCounter > 10){
-                        attachElement(data);
-                    }else{
-                        abortController.abort()
+            const consumer = new WritableStream({
+
+                    write({user_id,name,date},controller){  
+                        
+                        const node =  `
+                        <li id=${cardCounter} class="${hide?'hidded':'data-item'} ">
+                            <div class="id_user" >
+                                <span>Id:</span><h5>${user_id}</h5> 
+                            </div>
+                            <div class="name_user" >
+                                <span>Name:</span><h3>${name}</h3>
+                            </div>
+                            <div class="created">
+                                <span>Created at</span>:<h4>${date}</h4>
+                            </div>
+                        </li>
+                        `
+                        if(++cardCounter > 10){
+                            hide = true;
+                        }
+
+                        
+                        listEl.innerHTML += node;
+                    },
+                    abort(reason){
+                        console.log("aborted*",reason)
                     }
-                }
-        }),{signal:abortController.signal})
-
-    //const elFather = document.getElementById('data-list');
-
-    /*document.addEventListener('hidded',()=>{
-        abortController.abort()
-        abortController = new AbortController()
-    })*/
-    
-    /*var hiddenEvent = new CustomEvent('hidded',{
-        detail:{
-            message:"An element has hidden",
-            data:{
-                key:'value'
-            }
-        },
-        bubbles:true,
-        cancelable:true
-    })
-
-    elFather.onscroll = function(){
-        const elemnt = document.getElementById('0');
+            })
+            await reader.pipeTo(consumer,
+               {signal:abortController.signal})
+        }catch(error){
+            if(!error.message.includes('abort')) throw error;
+        }
         
-        var bounding = elemnt.getBoundingClientRect();
+    }
 
-        if(bounding.top*(-1) >= bounding.height){
-            document.dispatchEvent(hiddenEvent)
+    pause.onclick = function(){
+        abortController.abort();
+        console.log("Abortig...");
+        abortController = new AbortController()
+    }
+
+    const elFather = document.getElementById('data-list');
+    
+    elFather.onscroll = function(){
+        const viewedElement = document.querySelectorAll('.data-item');
+        const viewLength = viewedElement.length;
+
+        const element = document.getElementById(`${viewLength-11}`);
+        var bounding = element.getBoundingClientRect();
+        if(bounding.top*(-1) >= 0){
+            document.getElementById(`${viewLength+1}`).className = 'data-item'
         }else{
             console.log('Element is visible')
         }
-    }*/
+    }
 })()

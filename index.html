@@ -12,22 +12,47 @@
             padding: 0;
             box-sizing: border-box;
         }
+        body{
+            background-color: rgba(0, 67, 112, 0.164);
+        }
         .container{
             width: 100%;
             max-width: 122.5rem;
             margin:0 auto;
             padding: 0 2.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         #data-list{
-            max-height: 500px;
+            max-height: 300px;
+            width: 800px;
             overflow-Y: auto;
+            margin-top: 100px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 2px 2px 2px rgba(1, 11, 17, 0.164);
+        }
+        .data-item{
+            padding: 10px;
+            border-bottom: 1px solid rgba(0, 67, 112, 0.164);
+            height: 100px;
+        }
+        .id_user,.name_user,.created{
+            display: flex;
+        }
+        .hidded{
+            display: none;
         }
     </style>
     <title>Streaming Data</title>
+    
 </head>
 <body>
     <main>
         <section class="container" >
+            <button id="start">Start</button>
+            <button id="pause">Pause</button>
             <div class="content">
                 <ul id="data-list" >
                     
