@@ -1,3 +1,4 @@
+
 // Fetch data from a given URL using an AbortSignal to handle aborting the request
 async function fetchData(signal) {
   const response = await fetch('http://127.0.0.1:8000', {
@@ -12,7 +13,6 @@ async function fetchData(signal) {
         const { value, done } = await reader.read();
         if (done) break;
         controller.enqueue(value);
-        //Apply backpressure waiting 50ms
         await new Promise(resolve => setTimeout(() => resolve(), 50));
       }
     }
@@ -50,7 +50,8 @@ start.onclick = async function () {
     // Fetch and process data using the abort signal
     const reader = await fetchData(abortController.signal);
     const listEl = document.querySelector('#data-list');
-
+    var cardCounter = 0;
+    var hide = false;
     const consumer = new WritableStream({
       // Write received data to the DOM
       write({ user_id, name, date }, controller) {
