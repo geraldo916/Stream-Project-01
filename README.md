@@ -5,10 +5,7 @@ A simple app to read data from a database and stream it to client using Node js 
 
 The project has the following dependencies:
 
-- browserify: "^17.0.0"
-- JSONStream: "^1.3.5"
 - sqlite3: "^5.1.6"
-- typescript: "^5.1.6"
 
 These dependencies can be installed using the package manager of your choice, such as npm or yarn.
 
@@ -31,6 +28,8 @@ This will execute the `start` script defined in the `package.json` file, which r
 
 The project includes the following scripts:
 - **start**: This script is used to start the project. It runs the `index.js` file located in the `src` directory.
+
+- **generate-data**: This script is used to create a SQLite file database and some amount of data.
 
 You can execute these scripts by running the following command:
 
