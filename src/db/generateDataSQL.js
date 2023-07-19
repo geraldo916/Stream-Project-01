@@ -18,7 +18,7 @@ function createData(index) {
     };
     const data = {
       "id": crypto.randomUUID(),
-      "name": `${name.firstName} ${name.secondName} - Index - ${index}`,
+      "name": `${name.firstName} ${name.secondName} - ${index}`,
       "at":new Date().toLocaleDateString()
     };
     return data
@@ -32,6 +32,7 @@ function * run(){
     }
 }
 
+console.log("It'll take a couple of minutes")
 for(const data of run()){
     db.run(`INSERT INTO users VALUES(?, ?, ?)`,[data.id,data.name,data.at],(err)=>{
         if(err)console.log("Something went wrong",err);

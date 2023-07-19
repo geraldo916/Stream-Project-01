@@ -57,14 +57,13 @@ start.onclick = async function () {
       write({ user_id, name, date }, controller) {
         const node = `
           <li id=${cardCounter} class="${hide ? 'hidded' : 'data-item'} ">
-            <div class="id_user" >
-              <span>Id:</span><h5>${user_id}</h5> 
-            </div>
-            <div class="name_user" >
-              <span>Name:</span><h3>${name}</h3>
-            </div>
-            <div class="created">
-              <span>Created at</span>:<h4>${date}</h4>
+             <div> 
+                <div class="id_user" >
+                <span>Id:</span><h5>${user_id}</h5> 
+                </div>
+                <div class="name_user" >
+                  <span>Name:</span><h3>${name}</h3>
+                </div>
             </div>
           </li>
         `;

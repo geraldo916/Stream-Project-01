@@ -19,25 +19,27 @@ function handler(req,res){
 
         const  abortController = new AbortController();
 
-    req.once('close',()=>{
-        console.log("Connection was closed");
-        abortController.abort()
-    })
+        req.once('close',()=>{
+            console.log("Connection was closed");
+            abortController.abort()
+        })
 
     // Execute the query retrieving the result one by one and stream the results
     const dataStream = new Readable(
         {
             read(size){
-                console.log(size)
+                console.log("Size:",size);
                 db.each('SELECT * FROM users', (err, row) => {
                     if (err) {
                         console.error(err);
                     }else{
                     // Process each row here
+                    
                         this.push(JSON.stringify(row).concat('\n'))
                     }
-                },() => {
+                },(err) => {
                     // This callback is called when the streaming is complete
+                    if(err)console.log("Something wrong happened",err);
                     console.log('Streaming complete');
                     this.push(null)
                 })

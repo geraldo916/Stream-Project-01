@@ -24,25 +24,47 @@
             align-items: center;
             justify-content: center;
         }
-        #data-list{
-            max-height: 300px;
-            width: 800px;
-            overflow-Y: auto;
+        .content{
             margin-top: 100px;
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 2px 2px 2px rgba(1, 11, 17, 0.164);
+            width: 800px;
+            padding: 10px;
+        }
+        #data-list{
+            max-height: 300px;
+            overflow-Y: auto;
         }
         .data-item{
             padding: 10px;
             border-bottom: 1px solid rgba(0, 67, 112, 0.164);
             height: 100px;
+            display: flex;
+            justify-content: first baseline;
+            align-items: center;
         }
         .id_user,.name_user,.created{
             display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .data-item div span{
+            opacity: .6;
+            margin-right: 6px;
         }
         .hidded{
             display: none;
+        }
+        #start{
+            background-color: rgb(20, 133, 54);
+            border: none;
+            width: 160px;
+            height: 40px;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+            text-transform: uppercase;
         }
     </style>
     <title>Streaming Data</title>
@@ -51,9 +73,9 @@
 <body>
     <main>
         <section class="container" >
-            <button id="start">Start</button>
-            <button id="pause">Pause</button>
             <div class="content">
+                <button id="start">Start Streaming</button>
+                <button style="display: none;" id="pause">Pause</button>
                 <ul id="data-list" >
                     
                 </ul>
