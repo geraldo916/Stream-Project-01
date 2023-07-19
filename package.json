@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "sqlite3": "^5.1.6"
+  },
+  "name": "streaming-project-01",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start":"node ./src/index.js",
+    "generate-data": "node ./src/db/generateDataSQL.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
